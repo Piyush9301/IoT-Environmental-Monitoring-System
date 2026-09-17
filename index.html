@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Environmental Monitor — Dashboard</title>
+  <meta name="description" content="Real-time dashboard for Arduino Mega 2560 IoT sensor node: temperature, humidity, air quality, GPS, and relay status." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ─── HEADER ───────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">IoT<strong>Monitor</strong></span>
+    </div>
+
+    <nav class="header-nav">
+      <span id="connectionBadge" class="badge badge--offline">● Disconnected</span>
+      <span id="lastUpdateLabel" class="last-update">Never updated</span>
+      <button id="demoBtn" class="btn-demo" title="Toggle demo data">Demo Mode</button>
+      <button id="connectBtn" class="btn-connect" title="Connect to serial port">Connect Serial</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── MAIN LAYOUT ──────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- ── KPI CARDS ─────────────────────────────────────────── -->
+  <section class="kpi-grid" aria-label="Key metrics">
+
+    <!-- Temperature -->
+    <div class="kpi-card" id="cardTemp">
+      <div class="kpi-icon" style="--hue:14">🌡️</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Temperature</span>
+        <span class="kpi-value" id="kpiTemp">--</span>
+        <span class="kpi-unit">°C</span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill" id="tempBar" style="--pct:0;--hue:14"></div>
+      </div>
+      <span class="kpi-status" id="tempStatus"></span>
+    </div>
+
+    <!-- Humidity -->
+    <div class="kpi-card" id="cardHum">
+      <div class="kpi-icon" style="--hue:200">💧</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Humidity</span>
+        <span class="kpi-value" id="kpiHum">--</span>
+        <span class="kpi-unit">%</span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill" id="humBar" style="--pct:0;--hue:200"></div>
+      </div>
+      <span class="kpi-status" id="humStatus"></span>
+    </div>
+
+    <!-- Air Quality -->
+    <div class="kpi-card" id="cardAir">
+      <div class="kpi-icon" style="--hue:120">🌿</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Air Quality</span>
+        <span class="kpi-value" id="kpiAir">--</span>
+        <span class="kpi-unit">ADC</span>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-bar-fill" id="airBar" style="--pct:0;--hue:120"></div>
+      </div>
+      <span class="kpi-status" id="airStatus"></span>
+    </div>
+
+    <!-- Relay -->
+    <div class="kpi-card" id="cardRelay">
+      <div class="kpi-icon" style="--hue:270">⚙️</div>
+      <div class="kpi-body">
+        <span class="kpi-label">Relay D40</span>
+        <span class="kpi-value" id="kpiRelay">--</span>
+        <span class="kpi-unit"></span>
+      </div>
+      <div class="relay-indicator" id="relayIndicator"></div>
+      <span class="kpi-status" id="relayStatus"></span>
+    </div>
+
+  </section>
+
+  <!-- ── CHARTS + MAP ──────────────────────────────────────── -->
+  <section class="charts-row" aria-label="Time series charts">
+
+    <!-- Temperature chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h2 class="chart-title">Temperature History</h2>
+        <span class="chart-badge" style="--hue:14">Live</span>
+      </div>
+      <canvas id="chartTemp" height="200"></canvas>
+    </div>
+
+    <!-- Humidity chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h2 class="chart-title">Humidity History</h2>
+        <span class="chart-badge" style="--hue:200">Live</span>
+      </div>
+      <canvas id="chartHum" height="200"></canvas>
+    </div>
+
+  </section>
+
+  <!-- Air Quality Full-width chart -->
+  <section class="chart-full" aria-label="Air quality chart">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h2 class="chart-title">Air Quality (MQ-135 Raw ADC)</h2>
+        <span class="chart-badge" style="--hue:120">Live</span>
+        <div class="aq-legend">
+          <span class="aq-good">Good &lt;200</span>
+          <span class="aq-warn">Moderate 200–400</span>
+          <span class="aq-bad">Poor &gt;400</span>
+        </div>
+      </div>
+      <canvas id="chartAir" height="160"></canvas>
+    </div>
+  </section>
+
+  <!-- ── GPS + LOG ──────────────────────────────────────────── -->
+  <section class="bottom-row" aria-label="GPS and event log">
+
+    <!-- GPS Panel -->
+    <div class="gps-card">
+      <div class="chart-header">
+        <h2 class="chart-title">📍 GPS Location</h2>
+        <span class="gps-fix" id="gpsFix">No Fix</span>
+      </div>
+      <div class="gps-coords">
+        <div class="coord-box">
+          <span class="coord-label">Latitude</span>
+          <span class="coord-value" id="gpsLat">--</span>
+        </div>
+        <div class="coord-box">
+          <span class="coord-label">Longitude</span>
+          <span class="coord-value" id="gpsLon">--</span>
+        </div>
+        <div class="coord-box">
+          <span class="coord-label">Altitude</span>
+          <span class="coord-value" id="gpsAlt">-- m</span>
+        </div>
+      </div>
+      <div id="mapArea" class="map-area">
+        <div class="map-placeholder">
+          <span class="map-icon">🗺️</span>
+          <p>Awaiting GPS fix…</p>
+          <a id="mapLink" href="#" target="_blank" rel="noopener" class="map-link hidden">Open in Google Maps ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="log-card">
+      <div class="chart-header">
+        <h2 class="chart-title">📋 Event Log</h2>
+        <button id="clearLog" class="btn-clear">Clear</button>
+      </div>
+      <div id="logContainer" class="log-container" aria-live="polite"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ─── ALERT TOAST ───────────────────────────────────────────── -->
+<div id="alertToast" class="alert-toast hidden" role="alert" aria-live="assertive">
+  <span class="toast-icon">⚠️</span>
+  <span id="toastMsg">Alert message</span>
+  <button id="toastClose" class="toast-close" aria-label="Dismiss">✕</button>
+</div>
+
+<!-- ─── SCRIPTS ──────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
