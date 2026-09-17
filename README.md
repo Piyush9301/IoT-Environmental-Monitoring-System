@@ -1478,7 +1478,7 @@ GPS: No fix
 In the Arduino code, replace:
 
 ```cpp
-String alertPhone = "+91XXXXXXXXXX";
+String alertPhone = "+919301929218";
 ```
 
 with your destination phone number.
