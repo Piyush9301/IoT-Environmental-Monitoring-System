@@ -4,6 +4,20 @@ A real-time **IoT Environmental Monitoring System** built using **Arduino Mega 2
 
 The system collects temperature, humidity, air-quality, and GPS data, sends the readings to a browser dashboard through USB Serial, automatically controls a relay when environmental thresholds are exceeded, and can send SMS alerts through a GSM module.
 
+# ⚡ IoT Environmental Monitor
+
+> A real-time IoT Environmental Monitoring System built using Arduino Mega 2560, environmental sensors, GPS, GSM, relay control, and a web-based dashboard.
+
+## 📸 Dashboard Preview
+
+<p align="center">
+  <img src="assets/dashboard-preview.png" alt="IoT Environmental Monitor Dashboard" width="100%">
+</p>
+
+<p align="center">
+  <b>Real-Time IoT Environmental Monitoring Dashboard</b>
+</p>
+
 ---
 
 ## 🌐 Project Overview
